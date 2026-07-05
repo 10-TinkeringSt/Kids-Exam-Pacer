@@ -36,7 +36,7 @@ h1 { font-size: 20px; font-weight: 500; margin: 0; text-align: center; }
 
 .dial-header-row {
   display: flex; align-items: center; justify-content: space-between;
-  width: 100%; max-width: 340px;
+  width: 100%; max-width: 400px;
 }
 .dial-header-row h1 { text-align: left; }
 .watch-badge {
@@ -45,7 +45,7 @@ h1 { font-size: 20px; font-weight: 500; margin: 0; text-align: center; }
   white-space: nowrap;
 }
 .dial-divider {
-  width: 100%; max-width: 340px; height: 1px; background: #242424;
+  width: 100%; max-width: 400px; height: 1px; background: #242424;
   margin: 16px 0;
 }
 
@@ -69,18 +69,13 @@ button {
   font-size: 17px; font-weight: 500; margin-top: 8px;
 }
 .btn-primary:active { opacity: 0.85; }
-.btn-stop {
-  margin-top: 28px; height: 52px; padding: 0 28px; border-radius: 26px;
-  background: var(--red-dim); color: var(--red);
-  font-size: 15px; font-weight: 500;
-}
-.btn-reset {
-  margin-top: 20px; height: 52px; padding: 0 28px; border-radius: 26px;
-  background: var(--card); color: var(--text);
-  border: 1px solid var(--border); font-size: 15px; font-weight: 500;
-}
 
-.dial-wrap { position: relative; width: 100%; max-width: 340px; }
+.dial-wrap {
+  position: relative; width: 100%; max-width: 400px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 42%, #1c1c1e 0%, #0c0c0d 72%);
+  box-shadow: inset 0 0 30px rgba(0,0,0,0.5);
+}
 .dial-wrap.greyed { opacity: 0.35; filter: grayscale(0.6); pointer-events: none; }
 .overlay-go {
   position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
@@ -96,12 +91,27 @@ button {
 
 svg { width: 100%; height: auto; display: block; }
 .tick-minor { stroke: #4a4a4a; stroke-width: 1.5; }
-.tick-major { stroke: #c0c0c0; stroke-width: 2; }
-.tick-label { fill: #d0d0d0; font-size: 13px; font-weight: 500; }
-.readout-time { fill: #ffffff; font-size: 22px; font-weight: 500; }
-.readout-sub { fill: #909090; font-size: 10px; }
+.tick-major { stroke: #e0e0e0; stroke-width: 2; }
+.tick-label { fill: #e8e8e8; font-size: 13px; font-weight: 600; }
+.readout-min { fill: #ffffff; font-size: 34px; font-weight: 800; }
+.readout-sec { fill: #6a6a6a; font-size: 15px; font-weight: 500; }
+.readout-sub { fill: #909090; font-size: 11px; font-weight: 500; }
+.done-text { fill: var(--green); font-size: 14px; font-weight: 600; }
 
-.info-row { display: flex; gap: 12px; width: 100%; max-width: 340px; margin-top: 8px; }
+.stop-sector { cursor: pointer; }
+.stop-sector-path { fill: var(--red-dim); stroke: #4a2320; stroke-width: 1; }
+.stop-sector:hover .stop-sector-path,
+.stop-sector:active .stop-sector-path { fill: #4a1e1a; }
+.stop-sector-text { fill: var(--red); font-size: 14px; font-weight: 600; }
+.stop-sector:focus-visible .stop-sector-path { stroke: var(--red); stroke-width: 2; }
+
+.stop-sector.mode-reset .stop-sector-path { fill: var(--green-dim); stroke: #123d29; }
+.stop-sector.mode-reset:hover .stop-sector-path,
+.stop-sector.mode-reset:active .stop-sector-path { fill: #164a32; }
+.stop-sector.mode-reset .stop-sector-text { fill: var(--green); }
+.stop-sector.mode-reset:focus-visible .stop-sector-path { stroke: var(--green); stroke-width: 2; }
+
+.info-row { display: flex; gap: 12px; width: 100%; max-width: 400px; margin-top: 8px; }
 .info-card { flex: 1; border-radius: 16px; padding: 14px 16px; }
 .info-card .label { font-size: 12px; margin: 0 0 4px; }
 .info-card .value { font-size: 17px; font-weight: 500; margin: 0; }
@@ -110,8 +120,4 @@ svg { width: 100%; height: auto; display: block; }
 .info-red { background: var(--red-dim); }
 .info-red .label, .info-red .value { color: #ff6b5e; }
 
-.done-badge {
-  margin-top: 24px; font-size: 18px; font-weight: 500; color: var(--green);
-  display: flex; align-items: center; gap: 8px;
-}
 .wake-note { margin-top: 18px; font-size: 12px; color: var(--text-muted); text-align: center; max-width: 300px; }

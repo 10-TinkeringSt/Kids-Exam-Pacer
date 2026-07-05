@@ -43,18 +43,30 @@
     <div class="dial-divider"></div>
 
     <div class="dial-wrap greyed" id="dial-wrap">
-      <svg viewBox="0 0 340 340" id="dial-svg">
-        <g transform="translate(170,170)">
-          <circle r="98" fill="none" stroke="#3a3a3a" stroke-width="2"/>
-          <circle r="90" fill="#ff3b30" id="dial-base"/>
-          <path id="dial-pie" fill="#00e676"/>
-          <circle r="90" fill="none" stroke="#3a3a3a" stroke-width="1.5"/>
+      <svg viewBox="0 0 400 400" id="dial-svg">
+        <defs>
+          <filter id="dial-glow-sm" x="-150%" y="-150%" width="400%" height="400%">
+            <feGaussianBlur stdDeviation="2"/>
+          </filter>
+        </defs>
+        <g transform="translate(200,200)">
           <g id="ticks-minor"></g>
           <g id="ticks-major"></g>
           <g id="tick-labels"></g>
-          <circle r="38" fill="#1e1e1e" stroke="#333333" stroke-width="1"/>
-          <text x="0" y="-4" text-anchor="middle" class="readout-time" id="readout-time">40:00</text>
+
+          <g id="segments"></g>
+
+          <circle r="80" fill="none" stroke="#2a2a2a" stroke-width="1"/>
+          <text x="0" y="-8" text-anchor="middle" id="readout-time">
+            <tspan id="readout-min" class="readout-min">40</tspan><tspan id="readout-sec" class="readout-sec">:00</tspan>
+          </text>
           <text x="0" y="12" text-anchor="middle" class="readout-sub" id="readout-sub">left of 40:00</text>
+          <text x="0" y="34" text-anchor="middle" class="done-text" id="done-text" style="visibility:hidden;">Time's up</text>
+
+          <g id="btn-stop" class="stop-sector" style="visibility:hidden;" role="button" tabindex="0" aria-label="Stop">
+            <path id="stop-sector-path" class="stop-sector-path"/>
+            <text id="stop-sector-label" text-anchor="middle" class="stop-sector-text">Stop</text>
+          </g>
         </g>
       </svg>
 
@@ -75,10 +87,6 @@
       </div>
     </div>
 
-    <button class="btn-stop" id="btn-stop" style="visibility:hidden;">Stop</button>
-    <button class="btn-reset" id="btn-reset" style="display:none;">New timer</button>
-
-    <div class="done-badge" id="done-badge" style="display:none;">Time's up</div>
     <p class="wake-note" id="wake-note" style="display:none;">Your screen may dim on some older devices — this is a browser limitation.</p>
   </div>
 
