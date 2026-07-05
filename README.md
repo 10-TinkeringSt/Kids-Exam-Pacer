@@ -1,4 +1,4 @@
-# Exam Pacing Timer (PWA)
+# Kids Exam Pacing Timer (PWA)
 
 A distraction-free, watch-only exam pacing timer. Dark background, bright green
 for time remaining, bright red revealed as time is consumed, with fixed
