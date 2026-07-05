@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#121212">
+<title>Pacing Timer</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- SCREEN 1: SETUP -->
+  <div class="screen active" id="screen-setup">
+    <h1>Set up your timer</h1>
+    <p class="subtitle">Enter the exam length and question count</p>
+
+    <div class="field">
+      <label for="input-minutes">Exam length (minutes)</label>
+      <input type="number" id="input-minutes" inputmode="numeric" min="1" max="300" value="40">
+    </div>
+    <div class="field">
+      <label for="input-questions">Number of questions</label>
+      <input type="number" id="input-questions" inputmode="numeric" min="1" max="200" value="20">
+    </div>
+
+    <button class="btn-primary" id="btn-ok">OK</button>
+  </div>
+
+  <!-- SCREEN 2 & 3: DIAL (ready / running / done) -->
+  <div class="screen" id="screen-dial">
+    <div class="dial-header-row">
+      <h1 id="dial-title">Timer</h1>
+      <span class="watch-badge">Watch only</span>
+    </div>
+    <p class="subtitle" id="dial-subtitle">Tap go when you're ready to start</p>
+    <div class="dial-divider"></div>
+
+    <div class="dial-wrap greyed" id="dial-wrap">
+      <svg viewBox="0 0 340 340" id="dial-svg">
+        <g transform="translate(170,170)">
+          <circle r="98" fill="none" stroke="#3a3a3a" stroke-width="2"/>
+          <circle r="90" fill="#ff3b30" id="dial-base"/>
+          <path id="dial-pie" fill="#00e676"/>
+          <circle r="90" fill="none" stroke="#3a3a3a" stroke-width="1.5"/>
+          <g id="ticks-minor"></g>
+          <g id="ticks-major"></g>
+          <g id="tick-labels"></g>
+          <circle r="38" fill="#1e1e1e" stroke="#333333" stroke-width="1"/>
+          <text x="0" y="-4" text-anchor="middle" class="readout-time" id="readout-time">40:00</text>
+          <text x="0" y="12" text-anchor="middle" class="readout-sub" id="readout-sub">left of 40:00</text>
+        </g>
+      </svg>
+
+      <div class="overlay-go" id="overlay-go">
+        <button class="go-btn" id="btn-go">GO</button>
+      </div>
+    </div>
+
+    <div class="dial-divider"></div>
+    <div class="info-row" id="info-row" style="visibility:hidden;">
+      <div class="info-card info-green">
+        <p class="label">Aim to be near</p>
+        <p class="value" id="info-target">Question 1</p>
+      </div>
+      <div class="info-card info-red">
+        <p class="label">Test length</p>
+        <p class="value" id="info-length">40 min, 20 questions</p>
+      </div>
+    </div>
+
+    <button class="btn-stop" id="btn-stop" style="visibility:hidden;">Stop</button>
+    <button class="btn-reset" id="btn-reset" style="display:none;">New timer</button>
+
+    <div class="done-badge" id="done-badge" style="display:none;">Time's up</div>
+    <p class="wake-note" id="wake-note" style="display:none;">Your screen may dim on some older devices — this is a browser limitation.</p>
+  </div>
+
+</div>
+
+<script src="app.js" defer></script>
+</body>
+</html>

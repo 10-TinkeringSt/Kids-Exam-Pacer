@@ -1,0 +1,117 @@
+:root {
+  --bg: #121212;
+  --card: #1a1a1a;
+  --border: #2a2a2a;
+  --text: #f5f5f5;
+  --text-muted: #909090;
+  --green: #00e676;
+  --green-dim: #0a3d24;
+  --red: #ff3b30;
+  --red-dim: #3a1512;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body {
+  margin: 0; padding: 0; height: 100%;
+  background: var(--bg); color: var(--text);
+  font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+  overscroll-behavior: none;
+  user-select: none;
+}
+#app {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: env(safe-area-inset-top) 20px env(safe-area-inset-bottom);
+  max-width: 480px;
+  margin: 0 auto;
+}
+.screen { width: 100%; display: none; flex-direction: column; align-items: center; }
+.screen.active { display: flex; }
+
+h1 { font-size: 20px; font-weight: 500; margin: 0; text-align: center; }
+.subtitle { font-size: 14px; color: var(--text-muted); margin: 8px 0 20px; text-align: center; }
+
+.dial-header-row {
+  display: flex; align-items: center; justify-content: space-between;
+  width: 100%; max-width: 340px;
+}
+.dial-header-row h1 { text-align: left; }
+.watch-badge {
+  background: var(--border); color: var(--text-muted);
+  font-size: 11px; font-weight: 500; padding: 6px 14px; border-radius: 14px;
+  white-space: nowrap;
+}
+.dial-divider {
+  width: 100%; max-width: 340px; height: 1px; background: #242424;
+  margin: 16px 0;
+}
+
+.field { width: 100%; margin-bottom: 20px; }
+.field label { display: block; font-size: 13px; color: var(--text-muted); margin-bottom: 8px; }
+.field input {
+  width: 100%; height: 52px; border-radius: 14px;
+  border: 1px solid var(--border); background: var(--card);
+  color: var(--text); font-size: 20px; font-weight: 500;
+  text-align: center; padding: 0 12px;
+}
+.field input:focus { outline: none; border-color: var(--green); }
+
+button {
+  border: none; cursor: pointer; font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-primary {
+  width: 100%; height: 56px; border-radius: 16px;
+  background: var(--green); color: #05170d;
+  font-size: 17px; font-weight: 500; margin-top: 8px;
+}
+.btn-primary:active { opacity: 0.85; }
+.btn-stop {
+  margin-top: 28px; height: 52px; padding: 0 28px; border-radius: 26px;
+  background: var(--red-dim); color: var(--red);
+  font-size: 15px; font-weight: 500;
+}
+.btn-reset {
+  margin-top: 20px; height: 52px; padding: 0 28px; border-radius: 26px;
+  background: var(--card); color: var(--text);
+  border: 1px solid var(--border); font-size: 15px; font-weight: 500;
+}
+
+.dial-wrap { position: relative; width: 100%; max-width: 340px; }
+.dial-wrap.greyed { opacity: 0.35; filter: grayscale(0.6); pointer-events: none; }
+.overlay-go {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  pointer-events: auto;
+}
+.go-btn {
+  width: 108px; height: 108px; border-radius: 50%;
+  background: var(--green); color: #05170d;
+  font-size: 16px; font-weight: 500;
+  display: flex; align-items: center; justify-content: center;
+}
+.go-btn:active { opacity: 0.85; }
+
+svg { width: 100%; height: auto; display: block; }
+.tick-minor { stroke: #4a4a4a; stroke-width: 1.5; }
+.tick-major { stroke: #c0c0c0; stroke-width: 2; }
+.tick-label { fill: #d0d0d0; font-size: 13px; font-weight: 500; }
+.readout-time { fill: #ffffff; font-size: 22px; font-weight: 500; }
+.readout-sub { fill: #909090; font-size: 10px; }
+
+.info-row { display: flex; gap: 12px; width: 100%; max-width: 340px; margin-top: 8px; }
+.info-card { flex: 1; border-radius: 16px; padding: 14px 16px; }
+.info-card .label { font-size: 12px; margin: 0 0 4px; }
+.info-card .value { font-size: 17px; font-weight: 500; margin: 0; }
+.info-green { background: var(--green-dim); }
+.info-green .label, .info-green .value { color: var(--green); }
+.info-red { background: var(--red-dim); }
+.info-red .label, .info-red .value { color: #ff6b5e; }
+
+.done-badge {
+  margin-top: 24px; font-size: 18px; font-weight: 500; color: var(--green);
+  display: flex; align-items: center; gap: 8px;
+}
+.wake-note { margin-top: 18px; font-size: 12px; color: var(--text-muted); text-align: center; max-width: 300px; }

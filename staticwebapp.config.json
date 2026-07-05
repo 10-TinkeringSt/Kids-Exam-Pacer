@@ -1,0 +1,15 @@
+{
+  "navigationFallback": {
+    "rewrite": "/index.html",
+    "exclude": [
+      "/manifest.json",
+      "/service-worker.js",
+      "/styles.css",
+      "/app.js",
+      "/icon-*.png"
+    ]
+  },
+  "mimeTypes": {
+    ".webmanifest": "application/manifest+json"
+  }
+}
