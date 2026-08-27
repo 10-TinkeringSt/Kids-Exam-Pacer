@@ -121,3 +121,70 @@ svg { width: 100%; height: auto; display: block; }
 .info-red .label, .info-red .value { color: #ff6b5e; }
 
 .wake-note { margin-top: 18px; font-size: 12px; color: var(--text-muted); text-align: center; max-width: 300px; }
+
+/* --- Mode toggle --- */
+.mode-toggle {
+  display: flex; width: 100%; background: var(--card); border: 1px solid var(--border);
+  border-radius: 14px; padding: 4px; margin-bottom: 22px; gap: 4px;
+}
+.mode-btn {
+  flex: 1; height: 40px; border-radius: 10px; background: transparent;
+  color: var(--text-muted); font-size: 13px; font-weight: 500;
+}
+.mode-btn.active { background: var(--green); color: #05170d; }
+
+/* --- Field rows (Number of questions / Start / End) --- */
+.field-row { display: flex; gap: 10px; width: 100%; }
+.field-row .field { margin-bottom: 20px; }
+.field-row .field input { font-size: 17px; padding: 0 6px; }
+
+/* --- Order toggle (Increasing / Decreasing) --- */
+.order-toggle {
+  display: flex; width: 100%; gap: 10px; margin-bottom: 20px;
+}
+.order-btn {
+  flex: 1; height: 44px; border-radius: 12px;
+  border: 1px solid var(--border); background: var(--card);
+  color: var(--text-muted); font-size: 14px; font-weight: 500;
+}
+.order-btn.active { background: var(--green-dim); color: var(--green); border-color: var(--green); }
+
+/* --- Secondary button (Add paper) --- */
+.btn-secondary {
+  width: 100%; height: 48px; border-radius: 14px;
+  background: transparent; border: 1px dashed var(--border);
+  color: var(--text-muted); font-size: 15px; font-weight: 500; margin-bottom: 12px;
+}
+.btn-secondary:active { opacity: 0.7; }
+
+/* --- Paper cards (MPM) --- */
+.paper-card {
+  width: 100%; border: 1px solid var(--border); background: var(--card);
+  border-radius: 16px; padding: 16px; margin-bottom: 16px;
+}
+.paper-card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+.paper-swatch { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; background: var(--paper-color, var(--green)); }
+.paper-name {
+  flex: 1; height: 40px; border-radius: 10px; border: 1px solid var(--border);
+  background: var(--bg); color: var(--text); font-size: 14px; font-weight: 500;
+  padding: 0 10px;
+}
+.paper-name:focus { outline: none; border-color: var(--green); }
+.paper-remove {
+  width: 32px; height: 32px; border-radius: 50%; background: var(--border);
+  color: var(--text-muted); font-size: 16px; line-height: 1; flex-shrink: 0;
+}
+.paper-remove:active { opacity: 0.7; }
+.paper-card .field { margin-bottom: 14px; }
+.paper-card .field-row .field { margin-bottom: 14px; }
+.paper-card .order-toggle { margin-bottom: 0; }
+
+/* --- Papers legend (dial screen, MPM) --- */
+.papers-legend {
+  display: flex; flex-wrap: wrap; gap: 8px 14px; width: 100%; max-width: 400px;
+  margin-top: 10px; justify-content: center;
+}
+.papers-legend .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); }
+.papers-legend .legend-swatch { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+.paper-boundary { stroke: #f5f5f5; stroke-width: 2; opacity: 0.8; }

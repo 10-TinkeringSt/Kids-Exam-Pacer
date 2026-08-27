@@ -2,9 +2,25 @@
   var els = {
     setup: document.getElementById('screen-setup'),
     dial: document.getElementById('screen-dial'),
+
+    modeToggle: document.getElementById('mode-toggle'),
+    btnModeSingle: document.getElementById('btn-mode-single'),
+    btnModeMulti: document.getElementById('btn-mode-multi'),
+    spmPanel: document.getElementById('spm-panel'),
+    mpmPanel: document.getElementById('mpm-panel'),
+
     minutesInput: document.getElementById('input-minutes'),
     questionsInput: document.getElementById('input-questions'),
+    startInput: document.getElementById('input-start'),
+    endInput: document.getElementById('input-end'),
+    spmOrderToggle: document.getElementById('spm-order-toggle'),
     btnOk: document.getElementById('btn-ok'),
+
+    minutesInputMpm: document.getElementById('input-minutes-mpm'),
+    papersList: document.getElementById('papers-list'),
+    btnAddPaper: document.getElementById('btn-add-paper'),
+    btnOkMpm: document.getElementById('btn-ok-mpm'),
+
     dialWrap: document.getElementById('dial-wrap'),
     overlayGo: document.getElementById('overlay-go'),
     btnGo: document.getElementById('btn-go'),
@@ -23,11 +39,14 @@
     doneText: document.getElementById('done-text'),
     infoRow: document.getElementById('info-row'),
     infoTarget: document.getElementById('info-target'),
+    infoCardLength: document.getElementById('info-card-length'),
     infoLength: document.getElementById('info-length'),
+    papersLegend: document.getElementById('papers-legend'),
     wakeNote: document.getElementById('wake-note')
   };
 
   var state = {
+    mode: 'single', // 'single' | 'multi'
     totalSeconds: 0,
     totalQuestions: 0,
     remainingSeconds: 0,
@@ -35,7 +54,9 @@
     finished: false,
     timerHandle: null,
     endTime: null,
-    wakeLock: null
+    wakeLock: null,
+    papers: [],       // [{ name, color, n, start, end, order }]
+    questionMeta: []  // flattened, length === totalQuestions: [{ label, paperIndex }]
   };
 
   var ARC_START = 225;
@@ -54,6 +75,7 @@
 
   var GREEN = '#00e676';
   var RED = '#ff3b30';
+  var PAPER_COLORS = ['#00e676', '#2979ff', '#ffab00', '#e040fb', '#ff6d00', '#00e5ff', '#c6ff00', '#7c4dff'];
 
   function showScreen(name) {
     els.setup.classList.toggle('active', name === 'setup');
@@ -94,11 +116,205 @@
       ' A ' + ri + ',' + ri + ' 0 0 0 ' + pi1.x + ',' + pi1.y + ' Z';
   }
 
-  function buildTicks(totalQuestions) {
+  // ---------- Question ordering (Start/End/Increasing-Decreasing) ----------
+
+  function computeEnd(start, n, order) {
+    return order === 'inc' ? start + n - 1 : start - n + 1;
+  }
+
+  function paperLabels(paper) {
+    var dir = paper.order === 'inc' ? 1 : -1;
+    var labels = [];
+    for (var i = 0; i < paper.n; i++) labels.push(paper.start + i * dir);
+    return labels;
+  }
+
+  function buildQuestionMeta(papers) {
+    var meta = [];
+    for (var p = 0; p < papers.length; p++) {
+      var labels = paperLabels(papers[p]);
+      for (var i = 0; i < labels.length; i++) {
+        meta.push({ label: labels[i], paperIndex: p });
+      }
+    }
+    return meta;
+  }
+
+  // ---------- Mode toggle (SPM / MPM) ----------
+
+  function setMode(mode) {
+    state.mode = mode;
+    els.btnModeSingle.classList.toggle('active', mode === 'single');
+    els.btnModeMulti.classList.toggle('active', mode === 'multi');
+    els.spmPanel.style.display = mode === 'single' ? '' : 'none';
+    els.mpmPanel.style.display = mode === 'multi' ? '' : 'none';
+  }
+
+  els.btnModeSingle.addEventListener('click', function () { setMode('single'); });
+  els.btnModeMulti.addEventListener('click', function () { setMode('multi'); });
+
+  // ---------- SPM controls ----------
+
+  var spmOrder = 'inc';
+
+  function refreshSpmEnd() {
+    var n = Math.max(1, parseInt(els.questionsInput.value, 10) || 1);
+    var start = parseInt(els.startInput.value, 10) || 1;
+    els.endInput.value = computeEnd(start, n, spmOrder);
+  }
+
+  els.questionsInput.addEventListener('input', refreshSpmEnd);
+  els.startInput.addEventListener('input', refreshSpmEnd);
+
+  els.spmOrderToggle.addEventListener('click', function (e) {
+    var btn = e.target.closest('.order-btn');
+    if (!btn) return;
+    var newOrder = btn.getAttribute('data-order');
+    if (newOrder === spmOrder) return;
+
+    var n = Math.max(1, parseInt(els.questionsInput.value, 10) || 1);
+    var oldStart = parseInt(els.startInput.value, 10) || 1;
+    var oldEnd = parseInt(els.endInput.value, 10) || computeEnd(oldStart, n, spmOrder);
+
+    spmOrder = newOrder;
+    els.spmOrderToggle.querySelectorAll('.order-btn').forEach(function (b) {
+      b.classList.toggle('active', b.getAttribute('data-order') === spmOrder);
+    });
+
+    els.startInput.value = oldEnd;
+    els.endInput.value = computeEnd(oldEnd, n, spmOrder);
+  });
+
+  refreshSpmEnd();
+
+  // ---------- MPM controls (paper cards) ----------
+
+  var paperIdSeq = 0;
+  var paperCards = []; // [{ id, order }]
+
+  function paperCardTemplate(id, index) {
+    var color = PAPER_COLORS[index % PAPER_COLORS.length];
+    return '' +
+      '<div class="paper-card" data-paper-id="' + id + '" style="--paper-color:' + color + '">' +
+      '  <div class="paper-card-header">' +
+      '    <span class="paper-swatch"></span>' +
+      '    <input type="text" class="paper-name" placeholder="Subject name" value="Paper ' + (index + 1) + '">' +
+      '    <button class="paper-remove" type="button" aria-label="Remove paper">&times;</button>' +
+      '  </div>' +
+      '  <div class="field">' +
+      '    <label>Number of questions</label>' +
+      '    <input type="number" class="paper-questions" inputmode="numeric" min="1" max="200" value="20">' +
+      '  </div>' +
+      '  <div class="field-row">' +
+      '    <div class="field"><label>Start</label><input type="number" class="paper-start" inputmode="numeric" min="1" value="1"></div>' +
+      '    <div class="field"><label>End</label><input type="number" class="paper-end" readonly tabindex="-1"></div>' +
+      '  </div>' +
+      '  <div class="order-toggle paper-order-toggle">' +
+      '    <button class="order-btn active" data-order="inc" type="button">Increasing</button>' +
+      '    <button class="order-btn" data-order="dec" type="button">Decreasing</button>' +
+      '  </div>' +
+      '</div>';
+  }
+
+  function addPaperCard() {
+    var id = paperIdSeq++;
+    paperCards.push({ id: id, order: 'inc' });
+    var wrap = document.createElement('div');
+    wrap.innerHTML = paperCardTemplate(id, paperCards.length - 1);
+    var card = wrap.firstElementChild;
+    els.papersList.appendChild(card);
+    refreshPaperEnd(card, id);
+    renumberAndRecolorPaperCards();
+  }
+
+  function removePaperCard(card, id) {
+    if (paperCards.length <= 1) return; // keep at least one paper
+    paperCards = paperCards.filter(function (p) { return p.id !== id; });
+    card.remove();
+    renumberAndRecolorPaperCards();
+  }
+
+  function renumberAndRecolorPaperCards() {
+    var cards = els.papersList.querySelectorAll('.paper-card');
+    cards.forEach(function (card, index) {
+      var color = PAPER_COLORS[index % PAPER_COLORS.length];
+      card.style.setProperty('--paper-color', color);
+      var nameInput = card.querySelector('.paper-name');
+      if (nameInput && /^Paper \d+$/.test(nameInput.value)) {
+        nameInput.value = 'Paper ' + (index + 1);
+      }
+    });
+  }
+
+  function getPaperOrder(id) {
+    var p = paperCards.filter(function (p) { return p.id === id; })[0];
+    return p ? p.order : 'inc';
+  }
+
+  function setPaperOrder(id, order) {
+    var p = paperCards.filter(function (p) { return p.id === id; })[0];
+    if (p) p.order = order;
+  }
+
+  function refreshPaperEnd(card, id) {
+    var n = Math.max(1, parseInt(card.querySelector('.paper-questions').value, 10) || 1);
+    var start = parseInt(card.querySelector('.paper-start').value, 10) || 1;
+    var order = getPaperOrder(id);
+    card.querySelector('.paper-end').value = computeEnd(start, n, order);
+  }
+
+  els.papersList.addEventListener('input', function (e) {
+    var card = e.target.closest('.paper-card');
+    if (!card) return;
+    if (e.target.classList.contains('paper-questions') || e.target.classList.contains('paper-start')) {
+      var id = parseInt(card.getAttribute('data-paper-id'), 10);
+      refreshPaperEnd(card, id);
+    }
+  });
+
+  els.papersList.addEventListener('click', function (e) {
+    var card = e.target.closest('.paper-card');
+    if (!card) return;
+    var id = parseInt(card.getAttribute('data-paper-id'), 10);
+
+    if (e.target.classList.contains('paper-remove')) {
+      removePaperCard(card, id);
+      return;
+    }
+
+    var orderBtn = e.target.closest('.order-btn');
+    if (orderBtn) {
+      var newOrder = orderBtn.getAttribute('data-order');
+      if (newOrder === getPaperOrder(id)) return;
+
+      var n = Math.max(1, parseInt(card.querySelector('.paper-questions').value, 10) || 1);
+      var oldStart = parseInt(card.querySelector('.paper-start').value, 10) || 1;
+      var oldEnd = parseInt(card.querySelector('.paper-end').value, 10) || computeEnd(oldStart, n, getPaperOrder(id));
+
+      setPaperOrder(id, newOrder);
+      card.querySelectorAll('.paper-order-toggle .order-btn').forEach(function (b) {
+        b.classList.toggle('active', b.getAttribute('data-order') === newOrder);
+      });
+
+      card.querySelector('.paper-start').value = oldEnd;
+      card.querySelector('.paper-end').value = computeEnd(oldEnd, n, newOrder);
+    }
+  });
+
+  els.btnAddPaper.addEventListener('click', addPaperCard);
+
+  // Seed MPM with two paper cards by default.
+  addPaperCard();
+  addPaperCard();
+
+  // ---------- Dial build (shared by SPM / MPM) ----------
+
+  function buildTicks(questionMeta) {
     els.ticksMinor.innerHTML = '';
     els.ticksMajor.innerHTML = '';
     els.tickLabels.innerHTML = '';
 
+    var totalQuestions = questionMeta.length;
     var labelCount = 6;
     var drawMinor = totalQuestions <= 60;
 
@@ -118,7 +334,8 @@
 
     for (var k = 0; k <= labelCount; k++) {
       var f2 = k / labelCount;
-      var qNum = Math.max(1, Math.min(totalQuestions, Math.round(f2 * totalQuestions)));
+      var qPos = Math.max(1, Math.min(totalQuestions, Math.round(f2 * totalQuestions)));
+      var qLabel = questionMeta[qPos - 1].label;
 
       var p1b = arcPoint(SEG_OUTER + 10, f2), p2b = arcPoint(SEG_OUTER + 26, f2);
       var line2 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
@@ -136,8 +353,24 @@
       text.setAttribute('y', lp.y + 4);
       text.setAttribute('text-anchor', anchor);
       text.setAttribute('class', 'tick-label');
-      text.textContent = 'Q-' + qNum;
+      text.textContent = 'Q-' + qLabel;
       els.tickLabels.appendChild(text);
+    }
+
+    // Divider marks at paper boundaries (skipped for a single paper).
+    var papers = state.papers;
+    if (papers.length > 1) {
+      var cursor = 0;
+      for (var pi = 0; pi < papers.length - 1; pi++) {
+        cursor += papers[pi].n;
+        var fb = cursor / totalQuestions;
+        var b1 = arcPoint(SEG_INNER - 4, fb), b2 = arcPoint(SEG_OUTER + 4, fb);
+        var bline = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        bline.setAttribute('x1', b1.x); bline.setAttribute('y1', b1.y);
+        bline.setAttribute('x2', b2.x); bline.setAttribute('y2', b2.y);
+        bline.setAttribute('class', 'paper-boundary');
+        els.ticksMajor.appendChild(bline);
+      }
     }
   }
 
@@ -151,9 +384,16 @@
       path.setAttribute('d', segmentPath(SEG_INNER, SEG_OUTER, t1, t2));
       path.setAttribute('class', 'dial-segment');
       path.setAttribute('data-mid', mid);
-      path.setAttribute('fill', GREEN);
       els.segments.appendChild(path);
     }
+    updateSegments(1);
+  }
+
+  function colorForFraction(mid) {
+    var totalQuestions = state.totalQuestions;
+    var qPos = Math.max(0, Math.min(totalQuestions - 1, Math.floor(mid * totalQuestions)));
+    var paperIndex = state.questionMeta[qPos] ? state.questionMeta[qPos].paperIndex : 0;
+    return state.papers[paperIndex] ? state.papers[paperIndex].color : GREEN;
   }
 
   function updateSegments(remainingFrac) {
@@ -162,9 +402,26 @@
     var segs = els.segments.children;
     for (var i = 0; i < segs.length; i++) {
       var mid = parseFloat(segs[i].getAttribute('data-mid'));
-      segs[i].setAttribute('fill', mid <= elapsed ? RED : GREEN);
+      segs[i].setAttribute('fill', mid <= elapsed ? RED : colorForFraction(mid));
     }
   }
+
+  function buildLegend() {
+    if (state.papers.length <= 1) {
+      els.papersLegend.style.display = 'none';
+      els.papersLegend.innerHTML = '';
+      els.infoCardLength.style.display = '';
+      return;
+    }
+    els.infoCardLength.style.display = 'none';
+    els.papersLegend.style.display = 'flex';
+    els.papersLegend.innerHTML = state.papers.map(function (p) {
+      return '<span class="legend-item"><span class="legend-swatch" style="background:' + p.color + '"></span>' +
+        p.name + ' (' + p.n + 'q)</span>';
+    }).join('');
+  }
+
+  // ---------- Formatting / countdown ----------
 
   function formatTime(sec) {
     sec = Math.max(0, Math.round(sec));
@@ -194,8 +451,11 @@
     setReadout(remaining);
 
     var elapsedFrac = 1 - frac;
-    var targetQ = Math.max(1, Math.min(state.totalQuestions, Math.round(elapsedFrac * state.totalQuestions)));
-    els.infoTarget.textContent = 'Question ' + targetQ;
+    var targetPos = Math.max(1, Math.min(state.totalQuestions, Math.round(elapsedFrac * state.totalQuestions)));
+    var meta = state.questionMeta[targetPos - 1];
+    var paper = state.papers[meta.paperIndex];
+    var prefix = state.papers.length > 1 ? paper.name + ' — ' : '';
+    els.infoTarget.textContent = prefix + 'Question ' + meta.label;
   }
 
   function setDialAction(mode) {
@@ -304,25 +564,59 @@
     }
   });
 
-  els.btnOk.addEventListener('click', function () {
-    var minutes = parseInt(els.minutesInput.value, 10) || 1;
-    var questions = parseInt(els.questionsInput.value, 10) || 1;
+  // ---------- Launching the dial (SPM / MPM) ----------
+
+  function launchDial(minutes, papers) {
+    state.papers = papers;
+    state.questionMeta = buildQuestionMeta(papers);
+    state.totalQuestions = state.questionMeta.length;
     state.totalSeconds = minutes * 60;
     state.remainingSeconds = state.totalSeconds;
-    state.totalQuestions = questions;
 
     els.dialTitle.textContent = 'Timer';
     els.dialSubtitle.textContent = 'Tap go when you\'re ready to start';
-    els.infoLength.textContent = minutes + ' min, ' + questions + ' questions';
+    els.infoLength.textContent = minutes + ' min, ' + state.totalQuestions + ' questions';
     setReadout(state.totalSeconds);
     els.readoutSub.textContent = 'left of ' + formatTime(state.totalSeconds);
-    els.infoTarget.textContent = 'Question 1';
+    var firstMeta = state.questionMeta[0];
+    els.infoTarget.textContent = (papers.length > 1 ? papers[firstMeta.paperIndex].name + ' — ' : '') + 'Question ' + firstMeta.label;
 
-    buildTicks(questions);
+    buildTicks(state.questionMeta);
     buildSegments();
-    updateSegments(1);
+    buildLegend();
 
     showScreen('dial');
+  }
+
+  els.btnOk.addEventListener('click', function () {
+    var minutes = parseInt(els.minutesInput.value, 10) || 1;
+    var n = Math.max(1, parseInt(els.questionsInput.value, 10) || 1);
+    var start = parseInt(els.startInput.value, 10) || 1;
+    var end = computeEnd(start, n, spmOrder);
+
+    launchDial(minutes, [{
+      name: 'Paper 1', color: GREEN, n: n, start: start, end: end, order: spmOrder
+    }]);
+  });
+
+  els.btnOkMpm.addEventListener('click', function () {
+    var minutes = parseInt(els.minutesInputMpm.value, 10) || 1;
+    var cards = els.papersList.querySelectorAll('.paper-card');
+    var papers = [];
+    cards.forEach(function (card, index) {
+      var id = parseInt(card.getAttribute('data-paper-id'), 10);
+      var n = Math.max(1, parseInt(card.querySelector('.paper-questions').value, 10) || 1);
+      var start = parseInt(card.querySelector('.paper-start').value, 10) || 1;
+      var order = getPaperOrder(id);
+      var end = computeEnd(start, n, order);
+      var name = card.querySelector('.paper-name').value.trim() || ('Paper ' + (index + 1));
+      papers.push({
+        name: name, color: PAPER_COLORS[index % PAPER_COLORS.length],
+        n: n, start: start, end: end, order: order
+      });
+    });
+    if (!papers.length) return;
+    launchDial(minutes, papers);
   });
 
   els.btnGo.addEventListener('click', startTimer);

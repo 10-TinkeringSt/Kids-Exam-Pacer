@@ -18,19 +18,58 @@
 
   <!-- SCREEN 1: SETUP -->
   <div class="screen active" id="screen-setup">
-    <h1>Set up your timer</h1>
-    <p class="subtitle">Enter the exam length and question count</p>
 
-    <div class="field">
-      <label for="input-minutes">Exam length (minutes)</label>
-      <input type="number" id="input-minutes" inputmode="numeric" min="1" max="300" value="40">
-    </div>
-    <div class="field">
-      <label for="input-questions">Number of questions</label>
-      <input type="number" id="input-questions" inputmode="numeric" min="1" max="200" value="20">
+    <div class="mode-toggle" id="mode-toggle">
+      <button class="mode-btn active" id="btn-mode-single" data-mode="single" type="button">Single Paper</button>
+      <button class="mode-btn" id="btn-mode-multi" data-mode="multi" type="button">Multi Paper</button>
     </div>
 
-    <button class="btn-primary" id="btn-ok">OK</button>
+    <!-- SPM PANEL -->
+    <div id="spm-panel">
+      <h1>Set up your timer</h1>
+      <p class="subtitle">Enter the exam length and question count</p>
+
+      <div class="field">
+        <label for="input-minutes">Exam length (minutes)</label>
+        <input type="number" id="input-minutes" inputmode="numeric" min="1" max="300" value="40">
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="input-questions">Number of questions</label>
+          <input type="number" id="input-questions" inputmode="numeric" min="1" max="200" value="20">
+        </div>
+        <div class="field">
+          <label for="input-start">Start</label>
+          <input type="number" id="input-start" inputmode="numeric" min="1" value="1">
+        </div>
+        <div class="field">
+          <label for="input-end">End</label>
+          <input type="number" id="input-end" readonly tabindex="-1">
+        </div>
+      </div>
+      <div class="order-toggle" id="spm-order-toggle">
+        <button class="order-btn active" data-order="inc" type="button">Increasing</button>
+        <button class="order-btn" data-order="dec" type="button">Decreasing</button>
+      </div>
+
+      <button class="btn-primary" id="btn-ok">OK</button>
+    </div>
+
+    <!-- MPM PANEL -->
+    <div id="mpm-panel" style="display:none;">
+      <h1>Set up your timer</h1>
+      <p class="subtitle">Add each paper and set its question range</p>
+
+      <div class="field">
+        <label for="input-minutes-mpm">Total exam length (minutes)</label>
+        <input type="number" id="input-minutes-mpm" inputmode="numeric" min="1" max="600" value="60">
+      </div>
+
+      <div id="papers-list"></div>
+
+      <button class="btn-secondary" id="btn-add-paper" type="button">+ Add paper</button>
+      <button class="btn-primary" id="btn-ok-mpm">OK</button>
+    </div>
   </div>
 
   <!-- SCREEN 2 & 3: DIAL (ready / running / done) -->
@@ -81,11 +120,12 @@
         <p class="label">Aim to be near</p>
         <p class="value" id="info-target">Question 1</p>
       </div>
-      <div class="info-card info-red">
+      <div class="info-card info-red" id="info-card-length">
         <p class="label">Test length</p>
         <p class="value" id="info-length">40 min, 20 questions</p>
       </div>
     </div>
+    <div class="papers-legend" id="papers-legend" style="display:none;"></div>
 
     <p class="wake-note" id="wake-note" style="display:none;">Your screen may dim on some older devices — this is a browser limitation.</p>
   </div>

@@ -1,4 +1,4 @@
-var CACHE_NAME = 'pacing-timer-v3';
+var CACHE_NAME = 'pacing-timer-v4';
 var FILES_TO_CACHE = [
   './',
   './index.html',
